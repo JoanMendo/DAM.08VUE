@@ -11,18 +11,44 @@
     <div id="app">
         <ul>
             <h2>Champions</h2>
-            <li>    
-                <label for="hpFilter">Filtrar por vida:</label>
-                <input type="text" v-model="filterHP" placeholder="Buscar por vida" @input="conectAPI">
-                <label for="nameFilter">Filtrar por nombre:</label>
-                <input type="text" v-model="filterName" placeholder="Buscar por nombre" @input="conectAPI">
+            <label for= "filterName">Filtrar por nombre:</label>
+            <input id = "filterName" type="text" v-model="filterName" @input="conectAPI">
+            <input id = "showFilters" type="button" value="Mostrar filtros" @click="showFilters">
+            <li v-if = "filtersVisible" >    
+                <label for="filterHP">Filtrar por vida:</label>
+                <input id = "filterHP" type="text" v-model="filterHP" @input="conectAPI" >
+                <label for = "filterDMG">Filtrar por daño:</label>
+                <input id = "filterDMG" type="text" v-model="filterDMG" @input="conectAPI">
+                <label for = "filterAtackRange">Filtrar por rango de ataque:</label>
+                <input id = "filterAtackRange" type="text" v-model="filterAtackRange" @input="conectAPI">
+                
+                <label for = "filterMoveSpeed">Filtrar por velocidad de movimiento:</label>
+                <input id = "filterMoveSpeed" type="text" v-model="filterMoveSpeed" @input="conectAPI">
+                <label for = "filterAttackSpeed">Filtrar por velocidad de ataque:</label>
+                <input id = "filterAttackSpeed" type="text" v-model="filterAttackSpeed" @input="conectAPI">
+                <label for = "filterArmor">Filtrar por armadura:</label>
+                <input id = "filterArmor" type="text" v-model="filterArmor" @input="conectAPI">
+                <label for = "filterMagicResist">Filtrar por resistencia magica:</label>
+                <input id = "filterMagicResist" type="text" v-model="filterMagicResist" @input="conectAPI">
             </li>
-            <h2 v-if="champs.length == 0">Ningun campeón cumple esos parametros</h2>
+            <h2 v-if="champs.length == 0">Ningun campeon cumple estos parametros</h2>
             <li v-for="(champion, key) in champs" :key="key">
+                <input type="checkbox"></input>
                 <img :src="'https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/' + champion.image.full"
                     :alt="champion.name" width="100" height="100">
-                <h2>{{ champion.id}}</h2>
-                <p>{{ champion.description }}</p>
+                <h2>{{champion.id}}</h2>
+                <div>
+                    <p > Descripcion Rapida: {{champion.description }}</p>
+                    <p>Vida: {{champion.health}}</p>
+                    <p>Daño: {{champion.attackdamage}}</p>
+                    <p >Rango de ataque: {{champion.attackrange}}</p>
+                    <p >Velocidad de movimiento: {{champion.movespeed}}</p>
+                    <p>Velocidad de ataque: {{champion.attackspeed}}</p>
+                    <p>Armadura: {{champion.armor}}</p>
+                    <p>Resistencia magica: {{champion.spellblock}}</p>
+                </div>
+                
+
             </li>
         </ul>
     </div>
@@ -33,14 +59,21 @@
                 return {
                     champs: [],
                     filterHP: 400,
-                    filterName: ""
+                    filterDMG: 50,
+                    filterAtackRange: 50,
+                    filterMoveSpeed: 300,
+                    filterAttackSpeed: 0.6,
+                    filterArmor: 20,
+                    filterMagicResist: 20,
+                    filterName: "",
+                    filtersVisible: false
                 }
             },
             methods: {
                 conectAPI() {
 
 
-                    fetch("https://ddragon.leagueoflegends.com/cdn/14.7.1/data/en_US/champion.json")
+                    fetch("https://ddragon.leagueoflegends.com/cdn/14.7.1/data/es_ES/champion.json")
                         .then(res => {
                             if (res.ok) {
                                 return res.json();
@@ -58,19 +91,37 @@
                                 return true;
                             }
                             else {
-                                return champion.id.toLowerCase().includes(this.filterName)}
+                                return champion.id.toLowerCase().includes(this.filterName.toLowerCase())}
                             })
+                            .filter(champion => champion.stats.attackdamage > this.filterDMG)
+                            .filter(champion => champion.stats.movespeed > this.filterMoveSpeed)
+                            .filter(champion => champion.stats.attackspeed > this.filterAttackSpeed)
+                            .filter(champion => champion.stats.armor > this.filterArmor)
+                            .filter(champion => champion.stats.spellblock > this.filterMagicResist)
+                            .filter(champion => champion.stats.attackrange > this.filterAtackRange)
                             .map(champion => {
                                 return {
                                     id: champion.id,
                                     image: champion.image,
                                     description: champion.blurb,
-                                    health: champion.stats.hp
+                                    health: champion.stats.hp,
+                                    attackdamage: champion.stats.attackdamage,
+                                    attackrange: champion.stats.attackrange,
+                                    movespeed: champion.stats.movespeed,
+                                    attackspeed: champion.stats.attackspeed,
+                                    armor: champion.stats.armor,
+                                    spellblock: champion.stats.spellblock
+
                                 }
                             });
                         })
-                }
+                },
+                showFilters() {
+                this.filtersVisible = !this.filtersVisible;
             }
+
+            }
+            
         });
 
         const appMounted = app.mount('#app');
